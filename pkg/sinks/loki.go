@@ -58,6 +58,7 @@ func (l *Loki) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 	}
 	timestamp := generateTimestamp()
 	streamLabels, err := serializeEventWithStreamLabels(l.cfg.StreamLabels, ev)
+
 	a := LokiMsg{
 		Streams: []promtailStream{{
 			Stream: streamLabels,

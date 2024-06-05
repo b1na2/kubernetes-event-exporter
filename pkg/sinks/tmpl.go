@@ -12,24 +12,14 @@ import (
 )
 
 func GetString(event *kube.EnhancedEvent, text string) (string, error) {
-	text = strings.Replace(text, "-", "_", -1)
 	tmpl, err := template.New("template").Funcs(sprig.TxtFuncMap()).Parse(text)
 	if err != nil {
 		return "", err
 	}
 
-	//todo 这里特殊处理 将 - 转成 _
 	buf := new(bytes.Buffer)
-	cpEvent := event
-	for key := range cpEvent.Labels {
-		newKey := strings.Replace(key, "-", "_", -1)
-		if newKey != key {
-			cpEvent.Labels[newKey] = cpEvent.Labels[key]
-			delete(cpEvent.Labels, key)
-		}
-	}
 	// TODO: Should we send event directly or more events?
-	err = tmpl.Execute(buf, cpEvent)
+	err = tmpl.Execute(buf, event)
 	if err != nil {
 		return "", err
 	}
@@ -139,9 +129,18 @@ func serializeEventWithStreamLabels(streamLabels map[string]string, ev *kube.Enh
 
 func convertStreamLabelsTemplate(streamLabels map[string]string, ev *kube.EnhancedEvent) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
-
+	cpEvent := ev
+	for key, value := range cpEvent.Labels {
+		newKey := strings.Replace(key, "-", "_", -1)
+		if newKey != key {
+			cpEvent.Labels[newKey] = value
+			delete(cpEvent.Labels, key)
+		}
+	}
+	log.Debug().Msgf("cpEvent: %s", cpEvent.Labels)
 	for key, value := range streamLabels {
-		m, err := convertTemplate(value, ev)
+		value = strings.Replace(key, "-", "_", -1)
+		m, err := convertTemplate(value, cpEvent)
 		if err != nil {
 			log.Debug().Err(err).Msgf("convertStreamLabelsTemplate failed: %s", value)
 			return nil, err
