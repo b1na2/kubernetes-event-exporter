@@ -3,6 +3,7 @@ package sinks
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -73,6 +74,7 @@ func convertTemplate(value interface{}, ev *kube.EnhancedEvent) (interface{}, er
 		for i := range v {
 			t, err := convertTemplate(v[i], ev)
 			if err != nil {
+				log.Debug().Err(err).Msgf("convertTemplate failed: %s", v)
 				return nil, err
 			}
 			listConf[i] = t
@@ -105,6 +107,7 @@ func serializeEventWithStreamLabels(streamLabels map[string]string, ev *kube.Enh
 	if streamLabels != nil {
 		res, err := convertStreamLabelsTemplate(streamLabels, ev)
 		if err != nil {
+			log.Debug().Err(err).Msgf("parse template failed: %s", streamLabels)
 			return nil, err
 		}
 
@@ -129,6 +132,7 @@ func convertStreamLabelsTemplate(streamLabels map[string]string, ev *kube.Enhanc
 	for key, value := range streamLabels {
 		m, err := convertTemplate(value, ev)
 		if err != nil {
+			log.Debug().Err(err).Msgf("convertStreamLabelsTemplate failed: %s", value)
 			return nil, err
 		}
 		result[key] = m
