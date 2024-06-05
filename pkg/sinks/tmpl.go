@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"text/template"
 
-	"github.com/resmoio/kubernetes-event-exporter/pkg/kube"
 	"github.com/Masterminds/sprig/v3"
+	"github.com/resmoio/kubernetes-event-exporter/pkg/kube"
 )
 
 func GetString(event *kube.EnhancedEvent, text string) (string, error) {
@@ -98,4 +98,40 @@ func serializeEventWithLayout(layout map[string]interface{}, ev *kube.EnhancedEv
 		toSend = ev.ToJSON()
 	}
 	return toSend, nil
+}
+
+func serializeEventWithStreamLabels(streamLabels map[string]string, ev *kube.EnhancedEvent) (map[string]string, error) {
+	var toSend []byte
+	if streamLabels != nil {
+		res, err := convertStreamLabelsTemplate(streamLabels, ev)
+		if err != nil {
+			return nil, err
+		}
+
+		toSend, err = json.Marshal(res)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		toSend = ev.ToJSON()
+	}
+	var mapData map[string]string
+	err := json.Unmarshal(toSend, &mapData)
+	if err != nil {
+		return nil, err
+	}
+	return mapData, nil
+}
+
+func convertStreamLabelsTemplate(streamLabels map[string]string, ev *kube.EnhancedEvent) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+
+	for key, value := range streamLabels {
+		m, err := convertTemplate(value, ev)
+		if err != nil {
+			return nil, err
+		}
+		result[key] = m
+	}
+	return result, nil
 }

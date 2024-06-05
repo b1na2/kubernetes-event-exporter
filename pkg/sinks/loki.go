@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/resmoio/kubernetes-event-exporter/pkg/kube"
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
-	"github.com/rs/zerolog/log"
 )
 
 type promtailStream struct {
@@ -57,9 +57,10 @@ func (l *Loki) Send(ctx context.Context, ev *kube.EnhancedEvent) error {
 		return err
 	}
 	timestamp := generateTimestamp()
+	streamLabels, err := serializeEventWithStreamLabels(l.cfg.StreamLabels, ev)
 	a := LokiMsg{
 		Streams: []promtailStream{{
-			Stream: l.cfg.StreamLabels,
+			Stream: streamLabels,
 			Values: [][]string{{timestamp, string(eventBody)}},
 		}},
 	}
