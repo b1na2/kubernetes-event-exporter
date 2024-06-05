@@ -130,14 +130,15 @@ func serializeEventWithStreamLabels(streamLabels map[string]string, ev *kube.Enh
 func convertStreamLabelsTemplate(streamLabels map[string]string, ev *kube.EnhancedEvent) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	cpEvent := ev
-	for key, value := range cpEvent.Labels {
+	log.Debug().Msgf("cpEvent before: %s", cpEvent.Event.Labels)
+	for key, value := range cpEvent.Event.Labels {
 		newKey := strings.Replace(key, "-", "_", -1)
 		if newKey != key {
-			cpEvent.Labels[newKey] = value
-			delete(cpEvent.Labels, key)
+			cpEvent.Event.Labels[newKey] = value
+			delete(cpEvent.Event.Labels, key)
 		}
 	}
-	log.Debug().Msgf("cpEvent: %s", cpEvent.Labels)
+	log.Debug().Msgf("cpEvent: %s", cpEvent.Event.Labels)
 	for key, value := range streamLabels {
 		value = strings.Replace(key, "-", "_", -1)
 		m, err := convertTemplate(value, cpEvent)
