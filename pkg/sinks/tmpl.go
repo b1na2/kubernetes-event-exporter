@@ -18,9 +18,18 @@ func GetString(event *kube.EnhancedEvent, text string) (string, error) {
 		return "", err
 	}
 
+	//todo 这里特殊处理 将 - 转成 _
 	buf := new(bytes.Buffer)
+	cpEvent := event
+	for key := range cpEvent.Labels {
+		newKey := strings.Replace(key, "-", "_", -1)
+		if newKey != key {
+			cpEvent.Labels[newKey] = cpEvent.Labels[key]
+			delete(cpEvent.Labels, key)
+		}
+	}
 	// TODO: Should we send event directly or more events?
-	err = tmpl.Execute(buf, event)
+	err = tmpl.Execute(buf, cpEvent)
 	if err != nil {
 		return "", err
 	}
