@@ -148,5 +148,6 @@ func convertStreamLabelsTemplate(streamLabels map[string]string, ev *kube.Enhanc
 		}
 		result[key] = m
 	}
+	log.Debug().Msgf("result : %s", result)
 	return result, nil
 }
