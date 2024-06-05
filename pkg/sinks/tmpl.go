@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/rs/zerolog/log"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -11,6 +12,7 @@ import (
 )
 
 func GetString(event *kube.EnhancedEvent, text string) (string, error) {
+	text = strings.Replace(text, "-", "_", -1)
 	tmpl, err := template.New("template").Funcs(sprig.TxtFuncMap()).Parse(text)
 	if err != nil {
 		return "", err
