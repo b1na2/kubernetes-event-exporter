@@ -522,3 +522,7 @@ receivers:
         foo: bar
       url: http://127.0.0.1:3100/loki/api/v1/push
 ```
+
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm upgrade k8s-event-export bitnami/kubernetes-event-exporter --values values.yaml --version 2.10.0  --namespace nebula-system
+
